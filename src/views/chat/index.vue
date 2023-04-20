@@ -1,6 +1,6 @@
 <script setup lang='ts'>
 import type { Ref } from 'vue'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import {computed, defineAsyncComponent, onMounted, onUnmounted, ref} from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { NAutoComplete, NButton, NInput, useDialog, useMessage } from 'naive-ui'
@@ -16,6 +16,7 @@ import { useBasicLayout } from '@/hooks/useBasicLayout'
 import { useChatStore, usePromptStore } from '@/store'
 import { fetchChatAPIProcess } from '@/api'
 import { t } from '@/locales'
+const Images = defineAsyncComponent(() => import('@/components/common/Images/index.vue'))
 
 let controller = new AbortController()
 
@@ -54,6 +55,8 @@ dataSources.value.forEach((item, index) => {
   if (item.loading)
     updateChatSome(+uuid, index, { loading: false })
 })
+
+const imgWindowShow = ref(false)
 
 function handleSubmit() {
   onConversation()
@@ -531,6 +534,12 @@ onUnmounted(() => {
               <SvgIcon icon="ri:chat-history-line" />
             </span>
           </HoverButton>
+          <HoverButton v-if="!isMobile" @click="imgWindowShow = true">
+            <span class="text-xl text-[#4f555e] dark:text-white">
+              <SvgIcon icon="ri:text" />
+            </span>
+          </HoverButton>
+          <Images v-if="imgWindowShow" v-model:visible="imgWindowShow" />
           <NAutoComplete v-model:value="prompt" :options="searchOptions" :render-label="renderOption">
             <template #default="{ handleInput, handleBlur, handleFocus }">
               <NInput
