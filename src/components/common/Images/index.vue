@@ -1,8 +1,11 @@
 <script setup lang='ts'>
 import { computed } from 'vue'
-import {NButton, NModal, useMessage } from 'naive-ui'
+import { NButton, NModal, useMessage } from 'naive-ui'
+import axios from 'axios'
 import { SvgIcon } from '@/components/common'
 import { t } from '@/locales'
+const props = defineProps<Props>()
+const emit = defineEmits<Emit>()
 const ms = useMessage()
 interface Props {
   visible: boolean
@@ -11,10 +14,6 @@ interface Props {
 interface Emit {
   (e: 'update:visible', visible: boolean): void
 }
-
-const props = defineProps<Props>()
-
-const emit = defineEmits<Emit>()
 
 const show = computed({
   get() {
@@ -40,19 +39,16 @@ function importData(event: Event): void {
   if (!file)
     return
 
-  const reader: FileReader = new FileReader()
-  reader.onload = () => {
-    try {
-      const data = JSON.parse(reader.result as string)
-      localStorage.setItem('chatStorage', JSON.stringify(data))
-      ms.success(t('common.success'))
-      location.reload()
-    }
-    catch (error) {
-      ms.error(t('common.invalidFileFormat'))
-    }
-  }
-  reader.readAsText(file)
+  const formData = new FormData()
+  formData.append('file', file)
+  axios({
+    url: 'http://localhost:3003',
+    method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    data: { formData },
+  })
 }
 </script>
 
