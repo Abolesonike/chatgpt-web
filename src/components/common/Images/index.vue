@@ -1,9 +1,8 @@
 <script setup lang='ts'>
-import { computed } from 'vue'
-import { NButton, NModal, useMessage } from 'naive-ui'
+import { computed, ref } from 'vue'
+import { NButton, NInput, NModal, NSpin, useMessage } from 'naive-ui'
 import axios from 'axios'
 import { SvgIcon } from '@/components/common'
-import { t } from '@/locales'
 const props = defineProps<Props>()
 const emit = defineEmits<Emit>()
 const ms = useMessage()
@@ -24,6 +23,9 @@ const show = computed({
   },
 })
 
+const initText = ref('')
+const loading = ref(false)
+
 function handleImportButtonClick(): void {
   const fileInput = document.getElementById('fileInput') as HTMLElement
   if (fileInput)
@@ -31,6 +33,7 @@ function handleImportButtonClick(): void {
 }
 
 function importData(event: Event): void {
+  loading.value = true
   const target = event.target as HTMLInputElement
   if (!target || !target.files)
     return
@@ -47,7 +50,10 @@ function importData(event: Event): void {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
-    data: { formData },
+    data: formData,
+  }).then((resp) => {
+    initText.value = resp.data
+    loading.value = false
   })
 }
 </script>
@@ -56,7 +62,7 @@ function importData(event: Event): void {
   <NModal v-model:show="show" :auto-focus="false" preset="card" style="width: 95%; max-width: 640px">
     <div>
       <div>
-        <input id="fileInput" type="file" style="display:none" @change="importData">
+        <input id="fileInput" type="file" style="display:none" multiple @change="importData">
         <NButton size="small" @click="handleImportButtonClick">
           <template #icon>
             <SvgIcon icon="ri:upload-2-fill" />
@@ -64,9 +70,13 @@ function importData(event: Event): void {
           {{ $t('common.import') }}
         </NButton>
       </div>
-      <div style="margin-top: 15px">
-        <textarea rows="15" style="width: 100%" @input="handleinput" />
-      </div>
+      <NSpin :show="loading">
+        <div style="margin-top: 15px">
+          <div class="flex-1">
+            <NInput v-model:value="initText" type="textarea" :autosize="{ minRows: 15, maxRows: 30 }" />
+          </div>
+        </div>
+      </Nspin>
     </div>
   </NModal>
 </template>
